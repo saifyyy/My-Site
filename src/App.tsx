@@ -97,7 +97,8 @@ function App() {
   }, []);
   const [isScrollReached, setIsScrollReached] = React.useState(false);
   const [showBackToTop, setShowBackToTop] = React.useState(false);
-  const spotPos = { x: -9999, y: -9999 }
+  const [spotPos, setSpotPos] = React.useState<{ x: number; y: number }>({ x: -9999, y: -9999 });
+  const [isInteractiveHover, setIsInteractiveHover] = React.useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const sections = [
     { key: 'home', label: 'Home' },
@@ -136,7 +137,7 @@ function App() {
     scrollToSection(targetId);
     setIsMobileMenuOpen(false);
   };
-  React.useEffect(() => {
+   React.useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY; // kitna scroll kiya
       const triggerPoint = window.innerHeight * 0.9; // 80vh
@@ -150,8 +151,21 @@ function App() {
       setShowBackToTop(scrollPosition > 400);
     };
 
+    window.addEventListener("scroll", handleScroll);
+    const handleMouseMove = (e: MouseEvent) => {
+      setSpotPos({ x: e.clientX, y: e.clientY });
+      const target = e.target as HTMLElement | null;
+      const isInteractive = !!target?.closest('a, button, [role="button"], .stack-item, .project-card');
+      setIsInteractiveHover(isInteractive);
+    };
+    const handleMouseLeave = () => setSpotPos({ x: -9999, y: -9999 });
+    window.addEventListener('mousemove', handleMouseMove as any);
+    window.addEventListener('mouseleave', handleMouseLeave as any);
+
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener('mousemove', handleMouseMove as any);
+      window.removeEventListener('mouseleave', handleMouseLeave as any);
     };
   }, []);
 
@@ -270,7 +284,7 @@ function App() {
         <div className="stacks">
           {stack.map((s, index) => {
             return (
-              <div key={index} className="stack-box aos">
+              <div className="stack-box aos">
                 <div className="stack-head">
                   <div className="avatar">{s.avatar}</div>
                   <div className="stack-name">{s.stackName}</div>
@@ -531,11 +545,19 @@ function App() {
         </div>
       )}
 
+      {/* Cursor spotlight (desktop only, CSS hides on mobile) */}
       <div
         className="cursor-spotlight"
         style={{ transform: `translate(${spotPos.x - 120}px, ${spotPos.y - 120}px)` }}
       ></div>
 
+      {/* Elastic cursor ring only on interactive elements */}
+      {isInteractiveHover && (
+        <div
+          className={`cursor-ring active`}
+          style={{ transform: `translate(${spotPos.x - 12}px, ${spotPos.y - 12}px)` }}
+        ></div>
+      )}
 
       {showBackToTop && (
         <button
