@@ -284,7 +284,7 @@ function App() {
         <div className="stacks">
           {stack.map((s, index) => {
             return (
-              <div className="stack-box aos">
+              <div key={index} className="stack-box aos">
                 <div className="stack-head">
                   <div className="avatar">{s.avatar}</div>
                   <div className="stack-name">{s.stackName}</div>
